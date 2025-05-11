@@ -1,16 +1,49 @@
-import Hero from "@/components/hero";
-import ConnectSupabaseSteps from "@/components/tutorial/connect-supabase-steps";
-import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/utils/supabaseClient'
 
-export default async function Home() {
+export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      setError(error.message)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
   return (
-    <>
-      <Hero />
-      <main className="flex-1 flex flex-col gap-6 px-4">
-        <h2 className="font-medium text-xl mb-4">Next steps</h2>
-        {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-      </main>
-    </>
-  );
+    <div style={{ padding: '2rem' }}>
+      <h1>Inloggen</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="E-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        /><br />
+        <input
+          type="password"
+          placeholder="Wachtwoord"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        /><br />
+        <button type="submit">Login</button>
+      </form>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </div>
+  )
 }
